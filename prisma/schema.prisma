@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  email        String        @unique
+  password     String
+  name         String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  profile      Profile?
+  favorites    Favorite[]
+  watchHistory WatchHistory[]
+}
+
+model Profile {
+  id        Int      @id @default(autoincrement())
+  bio       String?
+  avatarUrl String?
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Movie {
+  id             Int             @id @default(autoincrement())
+  tmdbId         Int             @unique
+  title          String
+  overview       String?
+  posterPath     String?
+  backdropPath   String?
+  releaseDate    DateTime?
+  voteAverage    Float?
+  genres         MovieGenre[]
+  favorites      Favorite[]
+  watchHistory   WatchHistory[]
+}
+
+model Genre {
+  id        Int          @id @default(autoincrement())
+  name      String       @unique
+  movies    MovieGenre[]
+}
+
+model MovieGenre {
+  movie     Movie     @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  movieId   Int
+  genre     Genre     @relation(fields: [genreId], references: [id], onDelete: Cascade)
+  genreId   Int
+
+  @@id([movieId, genreId])
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  movieId   Int
+  createdAt DateTime @default(now())
+
+  @@unique([userId, movieId])
+}
+
+model WatchHistory {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  movieId   Int
+  watchedAt DateTime @default(now())
+  progress  Int      @default(0) 
+
+  @@unique([userId, movieId])
+}
