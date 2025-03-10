@@ -11,6 +11,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_CONNECTION")
 }
 
 model User {
@@ -26,11 +27,14 @@ model User {
 }
 
 model Profile {
-  id        Int      @id @default(autoincrement())
-  bio       String?
-  avatarUrl String?
-  userId    Int      @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          Int      @id @default(autoincrement())
+  bio         String?
+  avatarUrl   String?
+  nickname    String?
+  hobbies     String?
+  socialMedia Json?    // Store social media links as JSON
+  userId      Int      @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Movie {

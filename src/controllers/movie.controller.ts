@@ -47,18 +47,26 @@ export const getMovieDetails = async (req: Request, res: Response) => {
 
 export const addToFavorites = async (req: Request, res: Response): Promise<any> => {
   try {
+    console.log('Add to favorites request received');
+    console.log('User from request:', req.user);
+    console.log('Request body:', req.body);
+    
     const userId = req.user?.id;
     if (!userId) {
+      console.log('Authentication failed: No user ID in request');
       return res.status(401).json({ message: 'Not authenticated' });
     }
     
     const { tmdbId, title, posterPath } = req.body;
+    
+    console.log(`Processing favorite for user ${userId}, movie ${tmdbId}`);
     
     let movie = await prisma.movie.findUnique({
       where: { tmdbId }
     });
     
     if (!movie) {
+      console.log(`Movie ${tmdbId} not found in database, fetching from TMDB`);
       const movieDetails = await tmdbService.fetchMovieDetails(tmdbId);
       
       movie = await prisma.movie.create({
@@ -72,6 +80,23 @@ export const addToFavorites = async (req: Request, res: Response): Promise<any> 
           voteAverage: movieDetails.vote_average
         }
       });
+      console.log('Movie created in database');
+    }
+    
+    // Check if already favorited
+    const existingFavorite = await prisma.favorite.findFirst({
+      where: {
+        userId,
+        movieId: movie.id
+      }
+    });
+
+    if (existingFavorite) {
+      console.log('Movie already in favorites');
+      return res.json({ 
+        message: 'Movie already in favorites', 
+        favorite: existingFavorite 
+      });
     }
     
     const favorite = await prisma.favorite.create({
@@ -84,14 +109,15 @@ export const addToFavorites = async (req: Request, res: Response): Promise<any> 
       }
     });
     
+    console.log('Favorite successfully added');
     res.status(201).json(favorite);
   } catch (error) {
     console.error('Error adding to favorites:', error);
-    res.status(500).json({ message: 'Failed to add movie to favorites' });
+    res.status(500).json({ message: 'Failed to add movie to favorites', error: String(error) });
   }
 };
 
-export const getFavorites = async (req: Request, res: Response) => {
+export const getFavorites = async (req: Request, res: Response): Promise<any> => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -113,7 +139,7 @@ export const getFavorites = async (req: Request, res: Response) => {
   }
 };
 
-export const removeFromFavorites = async (req: Request, res: Response) => {
+export const removeFromFavorites = async (req: Request, res: Response): Promise<any> => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -133,5 +159,44 @@ export const removeFromFavorites = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error removing from favorites:', error);
     res.status(500).json({ message: 'Failed to remove movie from favorites' });
+  }
+};
+
+export const checkFavoriteStatus = async (req: Request, res: Response): Promise<any> => {
+  try {
+    console.log('Check favorite status request received');
+    
+    const userId = req.user?.id;
+    const tmdbId = parseInt(req.params.tmdbId);
+    
+    console.log(`Checking if movie ${tmdbId} is favorited by user ${userId}`);
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
+
+    const movie = await prisma.movie.findUnique({
+      where: { tmdbId }
+    });
+
+    if (!movie) {
+      console.log(`Movie ${tmdbId} not found in database, not favorited`);
+      return res.json({ isFavorited: false });
+    }
+
+    const favorite = await prisma.favorite.findFirst({
+      where: {
+        userId,
+        movieId: movie.id
+      }
+    });
+
+    const isFavorited = !!favorite;
+    console.log(`Movie ${tmdbId} favorite status for user ${userId}: ${isFavorited}`);
+    
+    res.json({ isFavorited });
+  } catch (error) {
+    console.error('Error checking favorite status:', error);
+    res.status(500).json({ message: 'Failed to check favorite status' });
   }
 };

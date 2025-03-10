@@ -33,7 +33,7 @@ export const updateProfile = async (req: Request, res: Response): Promise<any> =
       return res.status(401).json({ message: 'Not authenticated' });
     }
 
-    const { bio, avatarUrl, name } = req.body;
+    const { bio, avatarUrl, name, nickname, hobbies, socialMedia } = req.body;
 
     // Update user and profile in a transaction
     const updatedProfile = await prisma.$transaction(async (tx) => {
@@ -51,6 +51,9 @@ export const updateProfile = async (req: Request, res: Response): Promise<any> =
         data: {
           bio: bio !== undefined ? bio : undefined,
           avatarUrl: avatarUrl !== undefined ? avatarUrl : undefined,
+          nickname: nickname !== undefined ? nickname : undefined,
+          hobbies: hobbies !== undefined ? hobbies : undefined,
+          socialMedia: socialMedia !== undefined ? socialMedia : undefined,
         },
         include: { user: { select: { id: true, email: true, name: true } } },
       });
