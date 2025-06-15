@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma'; // Gunakan shared instance
 import * as tmdbService from '../services/tmdb.service';
-
-const prisma = new PrismaClient();
 
 export const getPopularMovies = async (req: Request, res: Response) => {
   try {

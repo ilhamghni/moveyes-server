@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma'; // Gunakan shared instance
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'default-secret-key';
 
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<any> => {

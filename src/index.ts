@@ -1,5 +1,5 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './lib/prisma'; // Gunakan shared instance
 import authRoutes from './routes/auth.routes';
 import movieRoutes from './routes/movie.routes';
 import profileRoutes from './routes/profile.routes';
@@ -7,7 +7,7 @@ import watchHistoryRoutes from './routes/watchHistory.routes';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
-const prisma = new PrismaClient();
+
 const app = express();
 
 // Middleware
