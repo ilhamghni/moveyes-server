@@ -7,7 +7,8 @@
     "dev": "ts-node-dev --respawn src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "vercel-build": "prisma generate && npm run build"
+    "vercel-build": "prisma generate && npm run build",
+    "gcp-build": "prisma generate && npm run build"
   },
   "author": "",
   "license": "ISC",
