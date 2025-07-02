@@ -51,6 +51,7 @@ jobs:
           service: ${{ env.SERVICE }}
           region: ${{ env.REGION }}
           image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}/${{ env.SERVICE }}:${{ github.sha }}
+          flags: --allow-unauthenticated --port=8080 --memory=1Gi --cpu=1 --max-instances=10
           env_vars: |
             NODE_ENV=production
             DATABASE_URL=${{ secrets.DATABASE_URL }}
@@ -58,5 +59,11 @@ jobs:
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
 
+      - name: Ensure unauthenticated access
+        run: |
+          gcloud run services add-iam-policy-binding ${{ env.SERVICE }} \
+            --region=${{ env.REGION }} \
+            --member="allUsers" \
+            --role="roles/run.invoker"
       - name: Show Output
         run: echo ${{ steps.deploy.outputs.url }}
